@@ -1,0 +1,14 @@
+﻿{
+  "configurations": [
+    {
+      "buildRoot": "${projectDir}\\out",
+      "cmakeCommandArgs": "",
+      "configurationType": "Release",
+      "ctestCommandArgs": "",
+      "generator": "Visual Studio 16 2019",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "installRoot": "${projectDir}\\out\\install\\${name}",
+      "name": "Release"
+    }
+  ]
+}
