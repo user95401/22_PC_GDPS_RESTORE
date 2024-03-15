@@ -1,14 +1,16 @@
 ﻿{
   "configurations": [
     {
-      "buildRoot": "${projectDir}\\out",
-      "cmakeCommandArgs": "",
+      "name": "x86-Release",
+      "generator": "Ninja",
       "configurationType": "Release",
-      "ctestCommandArgs": "",
-      "generator": "Visual Studio 16 2019",
-      "inheritEnvironments": [ "msvc_x86" ],
+      "buildRoot": "${projectDir}\\out\\build\\${name}",
       "installRoot": "${projectDir}\\out\\install\\${name}",
-      "name": "Release"
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "",
+      "ctestCommandArgs": "",
+      "inheritEnvironments": [ "msvc_x86" ],
+      "variables": []
     }
   ]
 }

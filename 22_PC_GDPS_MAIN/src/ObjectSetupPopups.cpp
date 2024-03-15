@@ -1,4 +1,6 @@
 ﻿#include "ObjectSetupPopups.hpp"
+using namespace gd;
+using namespace cocos2d;
 
 CustomTriggerPopup::CustomTriggerPopup() :
     FLAlertLayer() {
@@ -77,6 +79,9 @@ bool CustomTriggerPopup::init(EffectGameObject* obj) {
         CCPoint TouchTriggeredpos(-76.0, -68.0);
         TouchTriggered->setPosition(m_pLayer->convertToNodeSpace(TouchTriggeredpos));
         m_pButtonMenu->addChild(TouchTriggered);
+
+
+
         return true;
     }
     else return false;

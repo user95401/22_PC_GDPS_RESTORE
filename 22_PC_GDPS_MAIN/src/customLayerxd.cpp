@@ -1,5 +1,5 @@
-#include "customLayerxd.h"
-#include "../../curly-eureka/mod_utils.hpp"
+#include "customLayerxd.hpp"
+#include "ModUtils.hpp"
 
 using namespace gd;
 using namespace cocos2d;
@@ -64,27 +64,35 @@ bool customLayerxd::init() {
     addChild(menuInLtopBtns);
 
     //creaditsLnk
-    auto creditsLnk = gd::CCMenuItemSpriteExtra::create(
+    /*auto creditsLnk = gd::CCMenuItemSpriteExtra::create(
         ModUtils::createSprite("communityCreditsBtn_001.png"),
         this,
         menu_selector(customLayerxd::openURLcredits)
     );
-    menuInLtopBtns->addChild(creditsLnk);
+    menuInLtopBtns->addChild(creditsLnk);*/
     
     menuInLtopBtns->alignItemsVerticallyWithPadding(8);
 
     //bese yp
-    auto Mod_logo_001 = ModUtils::createSprite("Mod_logo_001.png");
+    auto Mod_logo_001 = ModUtils::createSprite("GJ_logo_001.png");
     Mod_logo_001->setPosition({ winSize.width / 2, winSize.height - 50 });
     addChild(Mod_logo_001);
-    auto txt1 = CCLabelBMFont::create("At first, this is mod and private server for Geometry Dash.\nBasically a combination of mods by others and own,\n besides adding mechanics was modified game and its resources.\nThis mod basically aimed to recreate known features from 2.2 update(currently in dev).\nBased on Geometry Dash 2.2 Recreation v2.0 (before update 1.7 was taken v1.1)\n by elSai and GenaMorphosis.\n Server and other improvements by user666 (anda he is owner).", "chatFont.fnt");
+    auto txt1 = CCLabelTTF::create(
+        "At first, this is mod and private server for Geometry Dash 2.113."
+        "\n" "Basically a combination of mods by others and own,"
+        "\n" "besides adding mechanics was modified game and its resources."
+        "\n" "This mod basically aimed to recreate known features from 2.2 update."
+        "\n" "Based on Geometry Dash 2.2 Recreation v2.0 "
+        "\n" "(before update 1.7 was taken v1.1) by elSai and GenaMorphosis."
+        "\n" "Server and other improvements by user666(and he is server owner)."
+        , "Comic Sans MS", 16.f);
     txt1->setPosition({ winSize.width / 2, winSize.height / 2 });
     txt1->setScale(0.8f);
-    txt1->setAlignment(kCCTextAlignmentCenter);
+    txt1->setHorizontalAlignment(kCCTextAlignmentCenter);
     addChild(txt1);
 
     //gamegamejoltLnk
-    auto gamegamejoltLnk = CCMenuItemSpriteExtra::create(
+    /*auto gamegamejoltLnk = CCMenuItemSpriteExtra::create(
         CCLabelBMFont::create("GAME", "gjFont02.fnt"),
         this,
         menu_selector(customLayerxd::gamejolt_openURL)
@@ -96,7 +104,7 @@ bool customLayerxd::init() {
     gamegamejoltLnk->addChild(gamegamejoltLnkPt2);
     auto gamegamejoltLnkMenu = CCMenu::createWithItem(gamegamejoltLnk);
     gamegamejoltLnkMenu->setPosition({ winSize.width / 2, 55 });
-    addChild(gamegamejoltLnkMenu);
+    addChild(gamegamejoltLnkMenu);*/
 
     //links
     auto linksMenu = CCMenu::create();

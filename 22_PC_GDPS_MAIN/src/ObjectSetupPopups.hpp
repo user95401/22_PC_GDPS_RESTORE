@@ -1,38 +1,38 @@
 #pragma once
-#include "22_PC_GDPS_MAIN.h"
+#include "ModUtils.hpp"
 
-class CustomTriggerPopup : public FLAlertLayer {
+class CustomTriggerPopup : public gd::FLAlertLayer {
 public:
-    CCTextInputNode* mainInput;
-    FLAlertLayer* helper;
-    CCLabelBMFont* saveString;
-    EffectGameObject* m_effectObject;
-    CCTextInputNode* input;
+    gd::CCTextInputNode* mainInput;
+    gd::FLAlertLayer* helper;
+    cocos2d::CCLabelBMFont* saveString;
+    gd::EffectGameObject* m_effectObject;
+    gd::CCTextInputNode* input;
     CustomTriggerPopup();
-    static CustomTriggerPopup* create(EffectGameObject* obj);
-    void onTouch(CCObject* sneder);
-    void onSpawn(CCObject* sneder);
+    static CustomTriggerPopup* create(gd::EffectGameObject* obj);
+    void onTouch(cocos2d::CCObject* sneder);
+    void onSpawn(cocos2d::CCObject* sneder);
     void update();
-    void onClose(CCObject* callback);
+    void onClose(cocos2d::CCObject* callback);
     virtual void keyBackClicked();
 
-    bool init(EffectGameObject* obj);
+    bool init(gd::EffectGameObject* obj);
 };
 
-class SetupPortalPopup : public FLAlertLayer {
+class SetupPortalPopup : public gd::FLAlertLayer {
 public:
-    CCTextInputNode* mainInput;
-    FLAlertLayer* helper;
-    CCLabelBMFont* saveString;
-    GameObject* m_effectObject;
-    CCTextInputNode* input;
+    gd::CCTextInputNode* mainInput;
+    gd::FLAlertLayer* helper;
+    cocos2d::CCLabelBMFont* saveString;
+    gd::GameObject* m_effectObject;
+    gd::CCTextInputNode* input;
     SetupPortalPopup();
-    static SetupPortalPopup* create(GameObject* obj);
-    void onTouch(CCObject* sneder);
-    void onfrfly(CCObject* sneder);
+    static SetupPortalPopup* create(gd::GameObject* obj);
+    void onTouch(cocos2d::CCObject* sneder);
+    void onfrfly(cocos2d::CCObject* sneder);
     void update();
-    void onClose(CCObject* callback);
+    void onClose(cocos2d::CCObject* callback);
     virtual void keyBackClicked();
 
-    bool init(GameObject* obj);
+    bool init(gd::GameObject* obj);
 };
