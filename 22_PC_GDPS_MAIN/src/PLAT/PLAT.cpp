@@ -1,8 +1,9 @@
 ﻿#include "ModUtils.hpp"
 #include "HooksUtils.hpp"
 #include "SimpleIni.h"
-using namespace std;
+#include "gd.h"
 using namespace gd;
+using namespace std;
 using namespace cocos2d;
 using namespace cocos2d::extension;
 
@@ -303,7 +304,7 @@ namespace PlatformerMod {
             if (!getCamOffset()->getActionByTag(622)) {
                 float offset = -180.0f;
                 //CCEaseSineOut
-                auto asd = CCEaseSineInOut::create(CCMoveTo::create(1.0f, CCPoint(offset, .0f)));
+                auto asd = CCEaseSineOut::create(CCMoveTo::create(1.0f, CCPoint(offset, .0f)));
                 asd->setTag(622);
                 if (getCamOffset()->getPositionX() != offset) getCamOffset()->runAction(asd);
             };
@@ -312,7 +313,7 @@ namespace PlatformerMod {
             if (!getCamOffset()->getActionByTag(642)) {
                 float offset = 0.0f;
                 //CCEaseSineInOut
-                auto asd = CCEaseSineInOut::create(CCMoveTo::create(1.0f, CCPoint(0.0f, .0f)));
+                auto asd = CCEaseSineOut::create(CCMoveTo::create(1.0f, CCPoint(0.0f, .0f)));
                 asd->setTag(642);
                 if (getCamOffset()->getPositionX() != offset) getCamOffset()->runAction(asd);
             };
@@ -374,16 +375,13 @@ namespace PlatformerMod {
         if (cfg.GetBoolValue("gdPlatformerMode", "camXoffsetUpdate")) camXoffsetUpdate();
 
         //playlayer
-        //if (gameLayer->m_pPlayer1->m_isInPlayLayer) {
-        //    PlayLayer* playLayer = reinterpret_cast<PlayLayer*>(gameLayerArg);
-        //    if (!playLayer->m_isDead && !playLayer->m_hasCompletedLevel && cfg.GetBoolValue("gdPlatformerMode", "camXoffsetUpdate")) {
-        //        auto tarxpos = (playLayer->m_pPlayer1->m_position.x - 180.0) + getCamOffset()->getPositionX();
-        //        playLayer->stopActionByTag(10);
-        //        playLayer->runAction(CCActionTween::create(0.1f, "cTX", tarxpos, tarxpos));
-        //        //playLayer->m_cameraXLocked = 1;
-        //        //playLayer->m_cameraX = /*playLayer->m_cameraXLocked ? playLayer->m_cameraX :*/ (playLayer->m_pPlayer1->m_position.x - 180.0) + getCamOffset()->getPositionX();
-        //    }
-        //}
+        if (gameLayer->m_pPlayer1->m_isInPlayLayer) {
+            PlayLayer* playLayer = reinterpret_cast<PlayLayer*>(gameLayerArg);
+            if (!playLayer->m_isDead && !playLayer->m_hasCompletedLevel && cfg.GetBoolValue("gdPlatformerMode", "camXoffsetUpdate")) {
+                playLayer->m_cameraXLocked = true;
+                playLayer->m_cameraX = (playLayer->m_pPlayer1->m_position.x - 180.0) + getCamOffset()->getPositionX();
+            }
+        }
 
         //m_isDashing
         if (gameLayer->m_pPlayer1->m_isDashing || gameLayer->m_pPlayer2->m_isDashing) {
@@ -435,28 +433,28 @@ bool __fastcall LevelEditorLayer_init_H(LevelEditorLayer* self, int, GJGameLevel
     return true;
 }
 
-LevelSettingsObject* g_levelSettings;
-LevelEditorLayer* g_editor;
 class LevelSettingsLayerExt : public FLAlertLayer {
 public:
+    LevelSettingsObject* levelSettings;
+    LevelEditorLayer* editor;
     void onToggle(CCObject*) {
-        g_levelSettings->m_level->m_sRecordString = g_levelSettings->m_level->m_sRecordString == "plat" ? "" : "plat";
-        g_levelSettings->m_level->m_nLevelLength = g_levelSettings->m_level->m_nLevelLength == 5 ? 0 : 5;
+        levelSettings->m_level->m_sRecordString = levelSettings->m_level->m_sRecordString == "plat" ? "" : "plat";
+        levelSettings->m_level->m_nLevelLength = levelSettings->m_level->m_nLevelLength == 5 ? 0 : 5;
     }
 };
 inline bool(__thiscall* LevelSettingsLayer_init)(LevelSettingsLayerExt* self, LevelSettingsObject* levelSettings, LevelEditorLayer* editor);
 bool __fastcall LevelSettingsLayer_init_H(LevelSettingsLayerExt* self, void*, LevelSettingsObject* levelSettings, LevelEditorLayer* editor) {
     if (!LevelSettingsLayer_init(self, levelSettings, editor) or !self) return false;
-    g_levelSettings = levelSettings;
-    g_editor = editor;
+    self->levelSettings = levelSettings;
+    self->editor = editor;
     auto toggle = CCMenuItemToggler::createWithStandardSprites(
         self,
         menu_selector(LevelSettingsLayerExt::onToggle),
         0.8f
     );
-    toggle->setPosition({ -149.000f, -129.750f });
+    toggle->setPosition({ -146.000f, -130.000f });
     toggle->toggle(levelSettings->m_level->m_nLevelLength == 5 or levelSettings->m_level->m_sRecordString == "plat");
-    self->m_pButtonMenu->addChild(toggle, 20, 8056);
+    self->m_pButtonMenu->addChild(toggle);
     return true;
 }
 
@@ -468,36 +466,28 @@ void __fastcall LevelEditorLayer_update_H(LevelEditorLayer* self, void*, float d
 }
 
 inline void(__thiscall* GameObject_activateObject)(GameObject*, PlayerObject*);
-void __fastcall GameObject_activateObject_H(GameObject* object, void*, PlayerObject* player) {
-    GameObject_activateObject(object, player);
-    bool AlwaysMultiActivate = (cfg.GetBoolValue("gdPlatformerMode", "AlwaysMultiActivate"));
-    bool PlatMultiActivate = (cfg.GetBoolValue("gdPlatformerMode", "PlatMultiActivate")) and PlatformerMod::enableMe;
-    if (AlwaysMultiActivate or PlatMultiActivate) {
-        object->m_bHasBeenActivated = false;
-        object->m_bHasBeenActivatedP2 = false;
-    };
+void __fastcall GameObject_activateObject_H(GameObject* self, void*, PlayerObject* player) {
+    GameObject_activateObject(self, player);
+    if (!(cfg.GetBoolValue("gdPlatformerMode", "Objects Always Not Activated"))) return;
+    //nulty acteve
+    self->m_bHasBeenActivated = false;
+    self->m_bHasBeenActivatedP2 = false;
 }
 
 inline void(__thiscall* PlayerObject_ringJump)(PlayerObject*, GameObject*);
-void __fastcall PlayerObject_ringJump_H(PlayerObject* self, void*, GameObject* object) {
-    PlayerObject_ringJump(self, object);
-    bool AlwaysMultiActivate = (cfg.GetBoolValue("gdPlatformerMode", "AlwaysMultiActivate"));
-    bool PlatMultiActivate = (cfg.GetBoolValue("gdPlatformerMode", "PlatMultiActivate")) and PlatformerMod::enableMe;
-    if (AlwaysMultiActivate or PlatMultiActivate) {
-        object->m_bHasBeenActivated = false;
-        object->m_bHasBeenActivatedP2 = false;
-    };
+void __fastcall PlayerObject_ringJump_H(PlayerObject* self, void*, GameObject* ring) {
+    PlayerObject_ringJump(self, ring);
+    if (!(cfg.GetBoolValue("gdPlatformerMode", "Objects_Always_Not_Activated"))) return;
+    ring->m_bHasBeenActivated = false;
+    ring->m_bHasBeenActivatedP2 = false;
 }
 
 inline void(__thiscall* GJBaseGameLayer_bumpPlayer)(GJBaseGameLayer*, PlayerObject*, GameObject*);
 void __fastcall GJBaseGameLayer_bumpPlayer_H(GJBaseGameLayer* self, void*, PlayerObject* player, GameObject* object) {
     GJBaseGameLayer_bumpPlayer(self, player, object);
-    bool AlwaysMultiActivate = (cfg.GetBoolValue("gdPlatformerMode", "AlwaysMultiActivate"));
-    bool PlatMultiActivate = (cfg.GetBoolValue("gdPlatformerMode", "PlatMultiActivate")) and PlatformerMod::enableMe;
-    if (AlwaysMultiActivate or PlatMultiActivate) {
-        object->m_bHasBeenActivated = false;
-        object->m_bHasBeenActivatedP2 = false;
-    };
+    if (!(cfg.GetBoolValue("gdPlatformerMode", "Objects_Always_Not_Activated"))) return;
+    object->m_bHasBeenActivated = false;
+    object->m_bHasBeenActivatedP2 = false;
 }
 
 inline void(__thiscall* GameManager_update)(GameManager*, float);
@@ -659,7 +649,7 @@ DWORD WINAPI thread_func(void* hModule) {
     // initialize minhook
     MH_Initialize();
 
-    //ModUtils::OpenConsole();
+    ModUtils::OpenConsole();
     HOOK(base + 0x170e50, LevelSettingsLayer_init);
     MappedHooks::registerHook(base + 0xbd910, lengthKeyToString);
     //MappedHooks::registerHook(base + 0x5a020, loadCustomLevelCell);
@@ -688,12 +678,10 @@ DWORD WINAPI thread_func(void* hModule) {
         cfg.SetBoolValue("gdPlatformerMode", "animationsUpdate", true, "; allow all features related to animations of robot or spider");
     if (!(cfg.KeyExists("gdPlatformerMode", "idleAnimationName")))
         cfg.SetValue("gdPlatformerMode", "idleAnimationName", "idle01", "; set \"idle\" if u have not 2.2 animations");
-    /*if (!(cfg.KeyExists("gdPlatformerMode", "camXoffsetUpdate")))
-        cfg.SetBoolValue("gdPlatformerMode", "camXoffsetUpdate", true, "; allow camera moving x feature");*/
-    if (!(cfg.KeyExists("gdPlatformerMode", "AlwaysMultiActivate")))
-        cfg.SetBoolValue("gdPlatformerMode", "AlwaysMultiActivate", false, "; set HasBeenActivated = false for every object (or its multi activate feature).\n; WARN: cube portal maybe imposter");
-    if (!(cfg.KeyExists("gdPlatformerMode", "PlatMultiActivate")))
-        cfg.SetBoolValue("gdPlatformerMode", "PlatMultiActivate", false, "; set HasBeenActivated = false for every object (or its multi activate feature).\n; WARN: cube portal maybe imposter");
+    if (!(cfg.KeyExists("gdPlatformerMode", "camXoffsetUpdate")))
+        cfg.SetBoolValue("gdPlatformerMode", "camXoffsetUpdate", true, "; allow camera moving x feature");
+    if (!(cfg.KeyExists("gdPlatformerMode", "Objects_Always_Not_Activated")))
+        cfg.SetBoolValue("gdPlatformerMode", "Objects_Always_Not_Activated", false, "; set HasBeenActivated = false for every object (or its multi activate feature).\n; WARN: cube portal maybe imposter");
     if (!(cfg.KeyExists("gdPlatformerMode", "forcePlatformer")))
         cfg.SetBoolValue("gdPlatformerMode", "forcePlatformer", false, "; plat in all levels ");
 

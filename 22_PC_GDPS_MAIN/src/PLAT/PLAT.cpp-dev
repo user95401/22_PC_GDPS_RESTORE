@@ -1,0 +1,296 @@
+#include "ModUtils.hpp"
+#include "HooksUtils.hpp"
+#include "customLayerxd.hpp"
+using namespace cocos2d;
+using namespace extension;
+#include "gd.h"
+using namespace gd;
+
+#define keyState(key) (GetKeyState(key) & 0x8000)
+class PlatformerModeNode : public CCNode {
+public:
+    inline static int uniqueTag = atoi("7519");
+    bool m_Enabled = false;
+    bool m_setSpeedHardly = false;// :T
+    bool m_laterally = false;// :T
+    float m_normalSpeed1 = 1.1f;
+    float m_normalSpeed2 = 1.1f;
+    GJBaseGameLayer* m_pGJBaseGameLayer = GameManager::sharedState()->getPlayLayer();
+    enumKeyCodes m_lastKey1;
+    enumKeyCodes m_lastKey2;
+    //containers
+    CCNode* getSpeedContainer1() {
+        auto rtn = getChildByTag(1);
+        if (!rtn) {
+            addChild(CCLabelTTF::create("SpeedContainer1", "arial", 1.f), 0, 1);
+            rtn = getChildByTag(1);
+        }
+        return rtn;
+    }
+    CCNode* getSpeedContainer2() {
+        auto rtn = getChildByTag(2);
+        if (!rtn) {
+            addChild(CCLabelTTF::create("SpeedContainer2", "arial", 1.f), 0, 2);
+            rtn = getChildByTag(2);
+        }
+        return rtn;
+    }
+    //plr2speedinf
+    bool isIdleSpeed1(double incr = 0.0) {
+        return fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed) <= (0.1f + incr);
+    }
+    bool isForwardSpeed1(double incr = 0.0) {
+        return m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed > (0.f + incr);
+    }
+    bool isBackwardSpeed1(double incr = 0.0) {
+        return m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed < (0.f - incr);
+    }
+    //plr2speedinf
+    bool isIdleSpeed2(double incr = 0.0) {
+        return fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed) <= (0.1f + incr);
+    }
+    bool isForwardSpeed2(double incr = 0.0) {
+        return m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed > (0.f + incr);
+    }
+    bool isBackwardSpeed2(double incr = 0.0) {
+        return m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed < (0.f - incr);
+    }
+    void updateNormalSpeed(float = 0.f) {
+        //oldSpeed1
+        if (
+            fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed) == 0.7f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed) == 0.9f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed) == 1.1f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed) == 1.3f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed) == 1.6f
+            ) {
+            m_normalSpeed1 = fabs(m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed);
+        }
+        //oldSpeed2
+        if (
+            fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed) == 0.7f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed) == 0.9f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed) == 1.1f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed) == 1.3f
+            or fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed) == 1.6f
+            ) {
+            m_normalSpeed2 = fabs(m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed);
+        }
+    }
+    //updates :D
+    void updateSpeed() {
+        if (keyState(KEY_A)) {
+            m_lastKey1 = KEY_A;
+            float spped = -fabs(m_normalSpeed1);
+            if (m_setSpeedHardly) getSpeedContainer1()->setScale(spped);
+            else if (!getSpeedContainer1()->getActionByTag(622)) {
+                auto asd = CCEaseSineIn::create(CCScaleTo::create(fabs(m_normalSpeed1 / 10 * 2), spped));
+                asd->setTag(622);
+                getSpeedContainer1()->runAction(asd);
+            };
+        }
+        if (keyState(KEY_D)) {
+            m_lastKey1 = KEY_D;
+            float spped = fabs(m_normalSpeed1);
+            if (m_setSpeedHardly) getSpeedContainer1()->setScale(spped);
+            else if (!getSpeedContainer1()->getActionByTag(541)) {
+                auto asd = CCEaseSineIn::create(CCScaleTo::create(fabs(m_normalSpeed1 / 10 * 2), spped));
+                asd->setTag(541);
+                getSpeedContainer1()->runAction(asd);
+            };
+        }
+        if (keyState(KEY_Left)) {
+            m_lastKey2 = KEY_Left;
+            float spped = -fabs(m_normalSpeed2);
+            if (m_setSpeedHardly) getSpeedContainer2()->setScale(spped);
+            else if (!getSpeedContainer2()->getActionByTag(622)) {
+                auto asd = CCEaseSineIn::create(CCScaleTo::create(fabs(m_normalSpeed2 / 10 * 2), spped));
+                asd->setTag(622);
+                getSpeedContainer2()->runAction(asd);
+            };
+        }
+        if (keyState(KEY_Right)) {
+            m_lastKey2 = KEY_Right;
+            float spped = fabs(m_normalSpeed2);
+            if (m_setSpeedHardly) getSpeedContainer2()->setScale(spped);
+            else if (!getSpeedContainer2()->getActionByTag(541)) {
+                auto asd = CCEaseSineIn::create(CCScaleTo::create(fabs(m_normalSpeed2 / 10 * 2), spped));
+                asd->setTag(541);
+                getSpeedContainer2()->runAction(asd);
+            };
+        }
+        //idle
+        if (!keyState(KEY_A) && !keyState(KEY_D)) {
+            float spped = .0f;
+            if (m_setSpeedHardly) getSpeedContainer1()->setScale(spped);
+            else if (!getSpeedContainer1()->getActionByTag(451)) {
+                auto asd = CCEaseSineInOut::create(CCScaleTo::create(0.2f, spped));
+                asd->setTag(451);
+                getSpeedContainer1()->stopActionByTag(622);
+                getSpeedContainer1()->stopActionByTag(541);
+                getSpeedContainer1()->runAction(asd);
+            };
+        }
+        if (!keyState(KEY_Left) && !keyState(KEY_Right)) {
+            float spped = .0f;
+            if (m_setSpeedHardly) getSpeedContainer2()->setScale(spped);
+            else if (!getSpeedContainer2()->getActionByTag(451)) {
+                auto asd = CCEaseSineInOut::create(CCScaleTo::create(0.2f, spped));
+                asd->setTag(451);
+                getSpeedContainer2()->stopActionByTag(622);
+                getSpeedContainer2()->stopActionByTag(541);
+                getSpeedContainer2()->runAction(asd);
+            };
+        }
+        m_pGJBaseGameLayer->m_pPlayer1->m_playerSpeed = getSpeedContainer1()->getScale();
+        m_pGJBaseGameLayer->m_pPlayer2->m_playerSpeed = getSpeedContainer2()->getScale();
+        getSpeedContainer1()->setScaleY(m_normalSpeed1);
+        getSpeedContainer2()->setScaleY(m_normalSpeed1);
+    }
+    void updateRotation(float = 0.f) {
+        //stop Rotation
+        auto p1 = m_pGJBaseGameLayer->m_pPlayer1;
+        auto p2 = m_pGJBaseGameLayer->m_pPlayer2;
+        //bird
+        if (p1->m_isBird)
+            p1->setRotation(0);
+        if (p2->m_isBird || (p2->isCube() && p2->m_isOnGround))
+            p2->setRotation(0);
+        //bot and spider in 3d 4k october
+        if (p1->m_isRobot || p1->m_isSpider && p1->m_isOnGround) {
+            auto rotAction = CCRotateTo::create(0.05, 0);
+            rotAction->setTag(777);
+            if (!p1->getActionByTag(777)) p1->runAction(rotAction);
+        }
+        if (p2->m_isRobot || p2->m_isSpider && p2->m_isOnGround) {
+            auto rotAction = CCRotateTo::create(0.05, 0);
+            rotAction->setTag(777);
+            if (!p2->getActionByTag(777)) p2->runAction(rotAction);
+        }
+        //fucks cube
+        if ((p1->isCube()) && p1->m_isOnGround) {
+            float rot = p1->getRotation();
+            float torot = 0;
+            if (p1->getRotation() < 0) rot = fabs(rot);
+            if (rot < 90 - 50) torot = 0;
+            else if (rot < 180 - 50) torot = 90;
+            else if (rot < 360 - 50) torot = 180;
+            else if (rot < 420) torot = 360;
+            else torot = 0;
+            if (p1->getRotation() < 0) torot = -torot;
+            auto rotAction = CCRotateTo::create(0.05, torot);
+            rotAction->setTag(777);
+            if (!p1->getActionByTag(777)) p1->runAction(rotAction);
+        }
+        if ((p2->isCube()) && p2->m_isOnGround) {
+            float rot = p2->getRotation();
+            float torot = 0;
+            if (p2->getRotation() < 0) rot = fabs(rot);
+            if (rot < 90 - 50) torot = 0;
+            else if (rot < 180 - 50) { torot = 90; }
+            else if (rot < 360 - 50) torot = 180;
+            else if (rot < 420) torot = 360;
+            else torot = 0;
+            if (p2->getRotation() < 0) torot = -torot;
+            auto rotAction = CCRotateTo::create(0.05, torot);
+            rotAction->setTag(777);
+            if (!p2->getActionByTag(777)) p2->runAction(rotAction);
+        }
+        //update laterally boolean
+        float rot42 = fabs(p1->getRotation());
+        if (bool(rot42 > 80 && rot42 < 100) || bool(rot42 > 260 && rot42 < 280)) m_laterally = true;
+        else m_laterally = false;
+    }
+    void update(float) {
+        if (!m_pGJBaseGameLayer or !this) return;
+        m_Enabled = true;///TESTING TEMP
+        updateNormalSpeed();
+        if (m_Enabled) {
+            updateSpeed();
+            updateRotation();
+        };
+    }
+    static auto create(GJBaseGameLayer* pGJBaseGameLayer) {
+        auto __this = new PlatformerModeNode;
+        __this->init();
+        __this->setTag(uniqueTag);
+        __this->m_pGJBaseGameLayer = pGJBaseGameLayer;
+        __this->schedule(schedule_selector(PlatformerModeNode::update));
+        return __this;
+    }
+    static void tryAddMe(GJBaseGameLayer* pGJBaseGameLayer) {
+        if (pGJBaseGameLayer->getChildByTag(uniqueTag)) return;
+        else pGJBaseGameLayer->addChild(create(pGJBaseGameLayer));
+    }
+    static auto tryGetMe(GJBaseGameLayer* pGJBaseGameLayer) {
+        auto childByTag = pGJBaseGameLayer->getChildByTag(uniqueTag);
+        if (childByTag) return dynamic_cast<PlatformerModeNode*>(childByTag);
+        else {
+            auto childToAdd = create(pGJBaseGameLayer);
+            pGJBaseGameLayer->addChild(childToAdd);
+            return childToAdd;
+        }
+    }
+};
+
+//setuplayers 0x10B1F0
+int __fastcall GJBaseGameLayer_setuplayers(GJBaseGameLayer* self) {
+    auto rtn = MappedHooks::getOriginal(GJBaseGameLayer_setuplayers)(self);
+    PlatformerModeNode::tryAddMe(self);
+    //shit
+    /*if (PlayLayerExt::freeMode && self->isRunning() && !self->m_isDead) {
+        if (!self->m_bIsDualMode) self->m_bIsDualMode = true;
+        self->m_pPlayer2->m_position = CCPoint(-999999, self->m_pPlayer1->m_position.y + 5);
+    }*/
+    return rtn;
+}
+
+class GameObjectActivateExt : public GameObject {
+public:
+    void testForDeactivate() {
+        if (not this->getChildByTag(8694)) {
+            m_bHasBeenActivated = false;
+            m_bHasBeenActivatedP2 = false;
+            this->addChild(CCNode::create(), 1, 8694);
+            this->getChildByTag(8694)->runAction(CCScaleTo::create(0.1f, 0.f));
+        }
+        else testForDeactivate2();
+    };
+    void testForDeactivate2() {
+        if(this->getChildByTag(8694)->getScale() < 0.001f)
+            this->removeChildByTag(8694);
+    };
+};
+
+void __fastcall GameObject_activateObject(GameObject* object, void*, PlayerObject* player) {
+    MappedHooks::getOriginal(GameObject_activateObject)(object, nullptr, player);
+    ((GameObjectActivateExt*)object)->testForDeactivate();
+}
+
+void __fastcall PlayerObject_ringJump(PlayerObject* self, void*, GameObject* object) {
+    MappedHooks::getOriginal(PlayerObject_ringJump)(self, nullptr, object);
+    object->m_bHasBeenActivated = false;
+    object->m_bHasBeenActivatedP2 = false;
+}
+
+void __fastcall GJBaseGameLayer_bumpPlayer(GJBaseGameLayer* self, void*, PlayerObject* player, GameObject* object) {
+    MappedHooks::getOriginal(GJBaseGameLayer_bumpPlayer)(self, nullptr, player, object);
+}
+
+
+//static gd::string lengthKeyToString(int key) = mac 0x2DBBD0, win 0xbd910;
+std::string __fastcall lengthKeyToString(int key) {
+    auto rtn = MappedHooks::getOriginal(lengthKeyToString)(key);
+    return key == 5 ? "Plat." : rtn;
+}
+
+BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
+    if (ul_reason_for_call != DLL_PROCESS_ATTACH) return TRUE;
+    MH_Initialize();
+    MappedHooks::registerHook(gd::base + 0x10B1F0, GJBaseGameLayer_setuplayers);
+    MappedHooks::registerHook(gd::base + 0xbd910, lengthKeyToString);
+    MappedHooks::registerHook(gd::base + 0xEF0E0, GameObject_activateObject);
+    MappedHooks::registerHook(gd::base + 0x1F4FF0, PlayerObject_ringJump);
+    MappedHooks::registerHook(gd::base + 0x10ed50, GJBaseGameLayer_bumpPlayer);
+    return TRUE;
+}

@@ -1,6 +1,7 @@
 #include "FakeLevelSelectLayerLol.hpp"
 #include "mod_utils.hpp"
 
+#include "gd.h"
 using namespace gd;
 using namespace std;
 using namespace cocos2d;

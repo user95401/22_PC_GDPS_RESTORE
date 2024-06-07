@@ -1,5 +1,6 @@
 #include "ModUtils.hpp"
 #include "HooksUtils.hpp"
+#include "gd.h"
 using namespace cocos2d;
 using namespace extension;
 class MenuLayer : public gd::MenuLayer {
@@ -59,7 +60,7 @@ bool __fastcall CCLayer_init_H(CCLayer* pClass) {
         auto rtn = CCLayer_init(pClass);
         //MenuLayer
         if (auto pMenuLayer = dynamic_cast<MenuLayer*>(pClass); pMenuLayer) 
-            pMenuLayer->scheduleOnce(schedule_selector(MenuLayer::customSetup), 0.001f);
+            pMenuLayer->scheduleOnce(schedule_selector(MenuLayer::customSetup), 0.000f);
         return rtn;
 }
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {

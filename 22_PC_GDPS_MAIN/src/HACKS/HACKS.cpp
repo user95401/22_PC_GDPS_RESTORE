@@ -2,6 +2,7 @@
 #include "HooksUtils.hpp"
 using namespace cocos2d;
 using namespace extension;
+#include "gd.h"
 using namespace gd;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {

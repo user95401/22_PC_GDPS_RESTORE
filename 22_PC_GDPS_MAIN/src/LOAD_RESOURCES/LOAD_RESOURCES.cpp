@@ -2,6 +2,7 @@
 #include "HooksUtils.hpp"
 using namespace cocos2d;
 using namespace extension;
+#include "gd.h"
 using namespace gd;
 
 inline void(__thiscall* LoadingLayer_loadAssets)(LoadingLayer*);

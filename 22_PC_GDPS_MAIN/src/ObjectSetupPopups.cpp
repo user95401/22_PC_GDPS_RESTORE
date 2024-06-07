@@ -1,4 +1,5 @@
 ﻿#include "ObjectSetupPopups.hpp"
+#include "gd.h"
 using namespace gd;
 using namespace cocos2d;
 

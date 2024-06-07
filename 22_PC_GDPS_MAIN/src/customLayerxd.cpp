@@ -1,6 +1,7 @@
 #include "customLayerxd.hpp"
 #include "ModUtils.hpp"
 
+#include "gd.h"
 using namespace gd;
 using namespace cocos2d;
 

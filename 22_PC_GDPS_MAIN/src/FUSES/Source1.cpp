@@ -1,5 +1,6 @@
 #include "ModUtils.hpp"
 #include "HooksUtils.hpp"
+#include "gd.h"
 using namespace cocos2d;
 using namespace extension;
 using namespace gd;
@@ -120,19 +121,14 @@ long __stdcall VectoredExceptionHandler(_EXCEPTION_POINTERS* pExceptInfo) {
     }
     //ModUtils::log(buffer.str());
     if (not dontfuckingcare) {
-        SetGameWindowTitle(std::format(
-            "OH SHED U GOT {} :3",
-            buffer.str()
-        ).c_str());
+        auto msg = std::format( "OH SHED U GOT {} :3", buffer.str() );
+        ModUtils::log(msg);
+        SetGameWindowTitle(msg.c_str());
         //save game?
         GameManager::sharedState()->save();
-        LevelEditorLayer* LevelEditorLayer_ = GameManager::sharedState()->getEditorLayer();
-        if (LevelEditorLayer_) {//level editor tries
-            LevelEditorLayer_->getEditorUI()->undoLastAction(LevelEditorLayer_);
-            LevelEditorLayer_->getEditorUI()->undoLastAction(LevelEditorLayer_);
-            LevelEditorLayer_->getEditorUI()->undoLastAction(LevelEditorLayer_);
-            EditorPauseLayer::create(LevelEditorLayer_)->saveLevel();
-        }
+        //level editor tries
+        auto pLevelEditorLayer = GameManager::sharedState()->getEditorLayer();
+        if (pLevelEditorLayer) EditorPauseLayer::create(pLevelEditorLayer)->saveLevel();
     };
     //rtn
     return EXCEPTION_EXECUTE_HANDLER;
@@ -140,7 +136,7 @@ long __stdcall VectoredExceptionHandler(_EXCEPTION_POINTERS* pExceptInfo) {
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     if (ul_reason_for_call != DLL_PROCESS_ATTACH) return TRUE;
-    AddVectoredExceptionHandler(1, VectoredExceptionHandler);//:3
+    AddVectoredExceptionHandler(0, VectoredExceptionHandler);//:3
     MH_Initialize();
     CC_HOOK("?create@CCSprite@cocos2d@@SAPAV12@PBD@Z", CCSprite_create);
     CC_HOOK("?createWithSpriteFrameName@CCSprite@cocos2d@@SAPAV12@PBD@Z", CCSprite_createWithSpriteFrameName);

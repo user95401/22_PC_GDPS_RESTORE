@@ -62,9 +62,7 @@ public:
 };
 inline void(__thiscall* PlayLayer_resetLevel)(gd::PlayLayer*);
 void __fastcall PlayLayer_resetLevel_H(gd::PlayLayer* self) {
-    self->m_pObjectLayer->setScale(1.0);
-    self->m_bottomGround->setScale(1.0);
-    self->m_topGround->setScaleX(1.0);
+    PlayLayer_resetLevel(self);
     self->unschedule(schedule_selector(schNoResstartFix::a));
 }
 

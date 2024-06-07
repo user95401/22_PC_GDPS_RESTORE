@@ -3,13 +3,16 @@
 #include "customLayerxd.hpp"
 using namespace cocos2d;
 using namespace extension;
-auto version = "v1.13";
+auto version = "v1.13-beta.1";
+bool noticed = false;
 class MenuLayer : public gd::MenuLayer {
 public:
     void onUpdateHttpResponse(CCHttpClient* client, CCHttpResponse* response) {
         std::vector<char>* responseData = response->getResponseData();
         std::string responseString(responseData->begin(), responseData->end());
+        if (noticed) return;
         if (responseString != version && response->getResponseCode() == 200) {
+            noticed = true;
             gd::AchievementNotifier::sharedState()->notifyAchievement(
                 "Update available!",
                 ("You can download actual " + responseString + " version on the website.").c_str(),
@@ -18,6 +21,7 @@ public:
             );
         }
         if (response->getResponseCode() != 200) {
+            noticed = true;
             //create and setup AchievementBar_
             gd::AchievementBar* AchievementBar_ = gd::AchievementBar::create(
                 "Server problems!",
@@ -83,7 +87,7 @@ bool __fastcall CCLayer_init_H(CCLayer* pClass) {
         auto rtn = CCLayer_init(pClass);
         //MenuLayer
         if (auto pMenuLayer = dynamic_cast<MenuLayer*>(pClass); pMenuLayer)
-            pMenuLayer->scheduleOnce(schedule_selector(MenuLayer::customSetup), 0.001f);
+            pMenuLayer->scheduleOnce(schedule_selector(MenuLayer::customSetup), 0.000f);
         return rtn;
 }
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {

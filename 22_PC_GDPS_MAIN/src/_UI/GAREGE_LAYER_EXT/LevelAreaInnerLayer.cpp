@@ -5,6 +5,7 @@
 #include <gd.h>
 
 using namespace cocos2d;
+#include "gd.h"
 using namespace gd;
 
 CCRepeatForever* LevelAreaInnerLayer::getscaleact(float time, float scale)

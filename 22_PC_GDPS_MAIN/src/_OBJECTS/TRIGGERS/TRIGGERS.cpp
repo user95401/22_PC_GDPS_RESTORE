@@ -1,7 +1,9 @@
 #include "ModUtils.hpp"
 #include "HooksUtils.hpp"
+#include "gd.h"
 using namespace cocos2d;
 using namespace extension;
+#include "gd.h"
 using namespace gd;
 
 #define stop1 2701
@@ -55,25 +57,6 @@ void __fastcall EditorUI_setupCreateMenu_H(EditorUI* self, void*) {
     }
 }
 
-inline void(__thiscall* editObject)(EditorUI*, cocos2d::CCObject*);
-void __fastcall editObject_H(EditorUI* self, void*, cocos2d::CCObject* object) {
-    if (self->m_pSelectedObject->m_nObjectID == stop1 ||
-        self->m_pSelectedObject->m_nObjectID == stop2 ||
-        self->m_pSelectedObject->m_nObjectID == scale ||
-        self->m_pSelectedObject->m_nObjectID == random ||
-        self->m_pSelectedObject->m_nObjectID == adv_random ||
-        self->m_pSelectedObject->m_nObjectID == zoom ||
-        self->m_pSelectedObject->m_nObjectID == static_trig ||
-        self->m_pSelectedObject->m_nObjectID == offset ||
-        self->m_pSelectedObject->m_nObjectID == reverse ||
-        self->m_pSelectedObject->m_nObjectID == song ||
-        self->m_pSelectedObject->m_nObjectID == end ||
-        self->m_pSelectedObject->m_nObjectID == stopJump) {
-        return self->editObject2(object);
-    }
-    editObject(self, object);
-}
-
 inline void(__thiscall* triggerObject)(GameObject*, GJBaseGameLayer*);//0xd1790
 void __fastcall triggerObject_H(GameObject* self, void*, GJBaseGameLayer* baseGameLayer) {
     /*return */triggerObject(self, baseGameLayer);
@@ -114,7 +97,10 @@ void __fastcall triggerObject_H(GameObject* self, void*, GJBaseGameLayer* baseGa
     if (self->m_nObjectID == end/* && !self->m_bEditor*/) {
         pPlayLayer->levelComplete();
         pPlayLayer->m_hasCompletedLevel = true;
-        pPlayLayer->moveCameraToPos({ self->getPosition().x - (CCDirector::sharedDirector()->getWinSize().width / 2), self->getPosition().y - (CCDirector::sharedDirector()->getWinSize().height / 2) });
+        pPlayLayer->moveCameraToPos({
+            self->getPosition().x - (CCDirector::sharedDirector()->getWinSize().width / 2),
+            self->getPosition().y - (CCDirector::sharedDirector()->getWinSize().height / 2)
+            });
         PlayerObj->m_isLocked = 1;
     }
     if (self->m_nObjectID == zoom) {
@@ -154,12 +140,35 @@ void __fastcall triggerObject_H(GameObject* self, void*, GJBaseGameLayer* baseGa
             }
         };
     }
+    if (self->m_nObjectID == offset) {
+        if (!self->m_bEditor) {
+            if (self->m_bRandomisedAnimStart) {
+                if (self->m_bIsRotatedSide) 
+                     pPlayLayer->runAction(CCEaseInOut::create(CCMoveTo::create(
+                    self->m_fAnimSpeed, { 0, 0 }
+                ), 2.00f));
+                else pPlayLayer->runAction(CCEaseInOut::create(CCMoveTo::create(
+                    self->m_fAnimSpeed, { 0, 0 }
+                ), 2.00f));
+            }
+            else {
+                if (self->m_bIsRotatedSide) 
+                     pPlayLayer->runAction(CCEaseInOut::create(CCMoveBy::create(
+                    self->m_fAnimSpeed, { 0, 3 * self->m_fScale }
+                ), 2.00f));
+                else pPlayLayer->runAction(CCEaseInOut::create(CCMoveBy::create(
+                    self->m_fAnimSpeed, { 3 * self->m_fScale, 0 }
+                ), 2.00f));
+            }
+        };
+    }
 }
+
 #define bShitThatThisMFGAMECANSAVE m_bIsGlowDisabled
 void setTrigger(EffectGameObject* self, bool atGettingByString) {
     auto id = self->m_nObjectID;
     //basicsetup
-    if (id == song or id == zoom or id == static_trig or id == end or id == reverse) {
+    if (id == song or id == zoom or id == static_trig or id == end or id == reverse or id == offset) {
         if(!atGettingByString) self->m_bIsEffectObject = true;
         else self->m_bTouchTriggered = self->bShitThatThisMFGAMECANSAVE;
     }
@@ -199,6 +208,10 @@ public:
 //rva 0x233000
 bool __fastcall SetupAnimSettingsPopupInit(SetupAnimSettingsPopup* __this, void* yp, EffectGameObject* pObject, cocos2d::CCArray* pObjects) {
     auto rtn = MappedHooks::getOriginal(SetupAnimSettingsPopupInit)(__this, yp, pObject, pObjects);
+    if (pObjects or !pObject) {//no multisel
+        __this->keyBackClicked();
+        return rtn;
+    }
     //__this->setRotation(3);
     //add btns spawn and touch dk
     if (pObject->m_nObjectID == stop1 ||
@@ -263,14 +276,85 @@ GameObject* objectFromString_H(std::string str, bool idk) {
     return go;
 }
 
+CCLabelBMFont* (__cdecl* CCLabelBMFont_create)(const char*, const char*);
+CCLabelBMFont* CCLabelBMFont_create_H(const char* str, const char* fntFile) {
+    if (!GameManager::sharedState()->getEditorLayer()) return CCLabelBMFont_create(str, fntFile);
+    if (!GameManager::sharedState()->getEditorLayer()->m_pEditorUI) return CCLabelBMFont_create(str, fntFile);
+    if (!GameManager::sharedState()->getEditorLayer()->m_pEditorUI->m_pSelectedObject) return CCLabelBMFont_create(str, fntFile);
+    auto pSelectedObject = GameManager::sharedState()->getEditorLayer()->m_pEditorUI->m_pSelectedObject;
+    //SetupAnimSettingsPopup
+    {
+        bool customtrig = { pSelectedObject->m_nObjectID == stop1 ||
+                pSelectedObject->m_nObjectID == stop2 ||
+                pSelectedObject->m_nObjectID == scale ||
+                pSelectedObject->m_nObjectID == random ||
+                pSelectedObject->m_nObjectID == adv_random ||
+                pSelectedObject->m_nObjectID == zoom ||
+                pSelectedObject->m_nObjectID == static_trig ||
+                pSelectedObject->m_nObjectID == offset ||
+                pSelectedObject->m_nObjectID == reverse ||
+                pSelectedObject->m_nObjectID == song ||
+                pSelectedObject->m_nObjectID == end ||
+                pSelectedObject->m_nObjectID == stopJump };
+        //poptitle
+        if (std::string(str) == "Edit Animation Settings") {
+            if (customtrig)
+                str = "Trigger Settings";
+            if (pSelectedObject->m_nObjectID == song)
+                str = "Song Trigger Settings";
+            if (pSelectedObject->m_nObjectID == zoom)
+                str = "Zoom Trigger Settings";
+            if (pSelectedObject->m_nObjectID == static_trig)
+                str = "Static Trigger Settings";
+        }
+        //num label
+        if (std::string(str) == "Speed: ") {
+            if (customtrig)
+                str = "NA";
+            if (pSelectedObject->m_nObjectID == song)
+                str = "Offset: ";
+            if (pSelectedObject->m_nObjectID == static_trig)
+                str = "Speed: ";
+            if (pSelectedObject->m_nObjectID == zoom)
+                str = "Speed: ";
+        }
+        //checkbox setup label
+        if (std::string(str) == "Randomize Start") {
+            if (customtrig)
+                str = "NA";
+            if (pSelectedObject->m_nObjectID == song)
+                str = "Play with offset";
+            if (pSelectedObject->m_nObjectID == static_trig)
+                str = "Move cam to me";
+            return CCLabelBMFont::create(str, fntFile, 220, kCCTextAlignmentCenter);
+        }
+        //help text
+        if (std::string(str) == "Animation settings help" && std::string(fntFile) == "chatFont.fnt") {
+            CCLabelBMFont* lbl = CCLabelBMFont::create("", "chatFont.fnt", 435, kCCTextAlignmentCenter);
+            std::string info = "";
+            if (customtrig)
+                str = "No help info!";
+            if (pSelectedObject->m_nObjectID == zoom)
+                info = "Modify this object to scale or rotate play layer";
+            if (pSelectedObject->m_nObjectID == static_trig)
+                info = "Static camera with this object rotation direction\nsame to mooving on object ^^^";
+            if (pSelectedObject->m_nObjectID == 1934)
+                info = "Can stop music.\n Or play song by offset.";
+            lbl->setString(std::string("                      \n" + info + "\n\n\n ").c_str());
+            if (info != "") return lbl;
+        }
+    }
+    return CCLabelBMFont_create(str, fntFile);
+}
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD ul_reason_for_call, LPVOID lpReserved) {
     if (ul_reason_for_call != DLL_PROCESS_ATTACH) return TRUE;
     MH_Initialize();
+    CC_HOOK("?create@CCLabelBMFont@cocos2d@@SAPAV12@PBD0@Z", CCLabelBMFont_create, false);
     HOOK(base + 0x15ee00, LevelEditorLayer_init);
     HOOK(base + 0x7CAF0, EditorUI_setupCreateMenu);//huh
     HOOK(base + 0xd1c10, GameObject_customSetup);
     HOOK(base + 0xd1790, triggerObject);
-    HOOK(base + 0x8ca50, editObject);
     HOOK(base + 0xEBE50, objectFromString);
     MappedHooks::registerHook(base + 0x233000, SetupAnimSettingsPopupInit);
     return TRUE;
